@@ -187,7 +187,7 @@
 <body>
     <div id="videoContainer">
         <video id="video" src="https://serverbankai.xyz/mantequilla/cerezo/monaschinas/juanpisa/latino/t1/1.mp4"></video>
-        <div id="title">titulo de video</div>
+        <div id="title">One-piece-T1-E1</div>
         <div id="centerControls">
             <button id="rewind"><i class="fas fa-undo"></i></button>
             <button id="playPause"><i class="fas fa-play"></i></button>
@@ -233,7 +233,7 @@
 
     // Define los tiempos de duración del botón y de salto
     let introDuration = 0; // Duración en segundos del botón
-    let skipToTime = 192; // Tiempo en segundos al que se saltará el video
+    let skipToTime = 125; // Tiempo en segundos al que se saltará el video
 
     video.addEventListener('loadeddata', () => {
         durationDisplay.textContent = formatTime(video.duration);
