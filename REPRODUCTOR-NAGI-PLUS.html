@@ -30,7 +30,7 @@
         }
         #controls, #title, #centerControls, #skipIntro {
             position: absolute;
-            opacity: 0;
+            opacity: 1; /* Asegúrate de que los controles sean visibles */
             transition: opacity 0.3s;
             color: white;
             z-index: 10;
@@ -139,6 +139,10 @@
             border-radius: 5px;
             margin-top: 15px;
         }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         #progressBar::-webkit-slider-runnable-track {
             background: #6c757d;
         }
@@ -171,7 +175,7 @@
 </head>
 <body>
     <div id="videoContainer">
-        <video id="video" src=""></video>
+        <video id="video"></video>
         <div id="title">Título de video</div>
         <div id="centerControls">
             <button id="rewind"><i class="fas fa-undo"></i></button>
@@ -195,26 +199,10 @@
             <div id="spinnerText">Cargando reproductor Nagi Plus</div>
         </div>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script defer>
-        // Función para obtener parámetros de la URL
-        function getParameterByName(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-
-        // Obtener la URL del video
-        const videoUrl = getParameterByName('link');
         const video = document.getElementById('video');
-
-        if (videoUrl) {
-            video.src = videoUrl;
-            document.getElementById('title').textContent = "Reproduciendo: " + videoUrl; // Muestra la URL como título
-            video.load();
-        } else {
-            alert('No se proporcionó una URL de video.');
-        }
-
-        // Resto de tu código JavaScript
         const videoContainer = document.getElementById('videoContainer');
         const playPauseButton = document.getElementById('playPause');
         const muteButton = document.getElementById('mute');
@@ -232,8 +220,54 @@
         const progressContainer = document.querySelector('.progress-container');
         const controls = document.querySelectorAll('#controls, #title, #centerControls, #skipIntro, #progressBar, .progress-container');
         let hideControlsTimeout;
-        const introDuration = 192;
+        const introDuration = 192; // Duración del intro en segundos
         let controlsVisible = false;
+
+        // Función para obtener parámetros de la URL
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                  results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Obtener los parámetros
+        const videoLink = getParameterByName('link');
+        const videoTitle = getParameterByName('titulo');
+        const skipTime = parseInt(getParameterByName('tiempo'), 10);
+
+        // Configurar el reproductor
+        window.onload = function() {
+            if (videoLink) {
+                // Verificar si el navegador soporta HLS
+                if (Hls.isSupported() && videoLink.endsWith('.m3u8')) {
+                    const hls = new Hls();
+                    hls.loadSource(videoLink);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        durationDisplay.textContent = formatTime(video.duration);
+                        video.play(); // Iniciar reproducción automáticamente una vez que el manifiesto esté cargado
+                    });
+                } else if (video.canPlayType('video/mp4')) {
+                    video.src = videoLink; // Establecer la fuente si es un MP4
+                    video.addEventListener('loadedmetadata', function() {
+                        durationDisplay.textContent = formatTime(video.duration);
+                        video.play();
+                    });
+                }
+
+                if (videoTitle) {
+                    document.getElementById('title').innerText = videoTitle; // Establecer el título del video
+                }
+
+                if (!isNaN(skipTime) && skipTime >= 0) {
+                    video.currentTime = skipTime; // Saltar a la parte especificada
+                }
+            }
+        };
 
         video.addEventListener('loadeddata', () => {
             durationDisplay.textContent = formatTime(video.duration);
@@ -268,10 +302,10 @@
         playPauseButton.addEventListener('click', () => {
             if (video.paused) {
                 video.play();
-                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Cambia a ícono de pausa
             } else {
                 video.pause();
-                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // Cambia a ícono de play
             }
         });
 
@@ -314,6 +348,8 @@
         });
 
         progressBar.addEventListener('input', () => {
+            const progressPercentage = (progressBar.value / progressBar.max) * 100;
+            loadingBar.style.width = progressPercentage + '%';
             video.currentTime = progressBar.value;
             updateThumbPosition();
         });
@@ -324,7 +360,8 @@
             const newTime = (clickPosition / containerRect.width) * video.duration;
             video.currentTime = newTime;
             progressBar.value = newTime;
-            loadingBar.style.width = (newTime / video.duration) * 100 + '%';
+            const progressPercentage = (newTime / video.duration) * 100;
+            loadingBar.style.width = progressPercentage + '%';
             updateThumbPosition();
         });
 
@@ -334,7 +371,8 @@
             const newTime = (clickPosition / containerRect.width) * video.duration;
             video.currentTime = newTime;
             progressBar.value = newTime;
-            loadingBar.style.width = (newTime / video.duration) * 100 + '%';
+            const progressPercentage = (newTime / video.duration) * 100;
+            loadingBar.style.width = progressPercentage + '%';
             updateThumbPosition();
         });
 
@@ -375,5 +413,4 @@
         showControls();
     </script>
 </body>
-  </html>
-  
+</html>
