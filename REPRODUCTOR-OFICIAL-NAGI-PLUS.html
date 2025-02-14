@@ -223,16 +223,13 @@
     // Obtener parámetros de la URL
     const videoLink = getParameterByName('link');
     const videoTitle = getParameterByName('titulo');
-    const skipTime = parseInt(getParameterByName('tiempo'), 10);
+    const skipTime = parseInt(getParameterByName('tiempo'), 10); // Obtiene el tiempo de salto de la intro
     // Configurar el reproductor
     window.onload = function() {
         if (videoLink) {
             video.src = videoLink; // Establecer la fuente del video
             if (videoTitle) {
                 document.getElementById('title').innerText = videoTitle; // Establecer el título
-            }
-            if (!isNaN(skipTime) && skipTime >= 0) {
-                video.currentTime = skipTime; // Saltar a la parte especificada
             }
             video.play(); // Iniciar la reproducción
         }
@@ -255,7 +252,7 @@
     const progressContainer = document.querySelector('.progress-container');
     const controls = document.querySelectorAll('#controls, #title, #centerControls, #skipIntro, #progressBar, .progress-container');
     let hideControlsTimeout;
-    const introDuration = 192; // Define la duración de la intro
+    const introDuration = 125; // Define la duración de la intro
     let controlsVisible = false;
 
     video.addEventListener('loadeddata', () => {
@@ -323,12 +320,12 @@
     });
 
     skipIntroButton.addEventListener('click', () => {
-        video.currentTime = introDuration; // Salta a la duración de la intro
+        video.currentTime = skipTime; // Salta a la duración de la intro
         skipIntroButton.style.display = 'none'; // Oculta el botón
     });
 
     videoContainer.addEventListener('click', (event) => {
-        if (![playPauseButton, muteButton, fullscreenButton, rewindButton, forwardButton].includes(event.target)) {
+        if (![playPauseButton, muteButton, fullscreenButton, rewindButton, forwardButton, skipIntroButton].includes(event.target)) {
             if (controlsVisible) {
                 hideControls(true);
             } else {
@@ -403,5 +400,4 @@
     showControls();
 </script>
 </body>
-                                                                   </html>
-                                                                   
+</html>
