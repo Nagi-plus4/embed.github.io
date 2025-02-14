@@ -3,388 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NAGI PLUS</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Algo-embarazada Nagi Plus</title>
     <style>
         body {
-            background-color: #000;
             margin: 0;
-            overflow: hidden;
             font-family: Arial, sans-serif;
+            color: white;
+            scroll-behavior: smooth;
+            background: url('https://media.themoviedb.org/t/p/w780/3SOunz2Z0qcOVlrkYFj20HquziB.jpg') no-repeat center center fixed; /* Imagen de fondo */
+            background-size: cover; /* Cubre todo el fondo */
         }
-        #videoContainer {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            background: #000;
-        }
-        video {
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            background: rgba(0, 0, 0, 0.8); /* Degradado oscuro más opaco */
+            z-index: 1; /* Asegúrate de que esté detrás del contenido */
         }
-        #controls, #title, #centerControls, #skipIntro {
-            position: absolute;
-            opacity: 0;
-            transition: opacity 0.3s;
-            color: white;
-            z-index: 10;
+        .header {
+            height: 300px;
+            display: flex; /* Para organizar el póster y el video */
+            align-items: center; /* Alinea verticalmente el contenido */
+            position: relative; /* Para que el contenido esté sobre el overlay */
+            z-index: 2; /* Asegúrate de que esté por encima del overlay */
         }
-        #controls {
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
+        .poster-container {
+            width: 100px; /* Ajusta el ancho del póster según sea necesario */
+            margin-right: 20px; /* Espacio entre el póster y el video */
         }
-        button {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 50px;
-            cursor: pointer;
-            outline: none;
-            padding: 10px;
-        }
-        #timeDisplay {
-            font-size: 20px;
-        }
-        #title {
-            top: 20px;
-            left: 20px;
-            font-size: 24px;
-        }
-        #centerControls {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-        .progress-container {
-            width: 98%;
-            height: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-            position: absolute;
-            bottom: 100px;
-            left: 1%;
-            right: 1%;
-            border: 1px solid #808080;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-        }
-        #progressBar {
-            -webkit-appearance: none;
+        .poster-container img {
             width: 100%;
-            height: 15px;
-            background: #808080;
-            outline: none;
-            opacity: 0.7;
-            -webkit-transition: 0.2s;
-            transition: opacity 0.2s;
-            border-radius: 10px;
+            height: auto;
         }
-        #progressBar::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #F08080;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-        #progressBar::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #F08080;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-        #skipIntro {
-            top: 20px;
-            right: 20px;
-            font-size: 20px;
-            cursor: pointer;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 5px;
-            display: none; /* Inicialmente oculto */
-        }
-        #spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 70px;
-            display: none;
-            color: white;
-            text-align: center;
+        iframe {
+            width: 100%;
+            height: 100%;
             border: none;
-            border-radius: 5px;
+            display: none; /* Oculta el video inicialmente */
         }
-        #spinnerText {
+        .content {
+            padding: 20px;
+            display: flex; /* Para organizar el póster y la información */
+            position: relative; /* Para que el contenido esté sobre el overlay */
+            z-index: 2; /* Asegúrate de que esté por encima del overlay */
+        }
+        .details-container {
+            flex: 1; /* La información ocupa el espacio restante */
+        }
+        .details h1 {
             font-size: 24px;
-            display: none;
-            color: white;
-            text-align: center;
-            text-shadow: 1px 0 black, -1px 0 black, 0 1px black, 0 -1px black;
-            border-radius: 5px;
-            margin-top: 15px;
+            margin: 10px 0;
         }
-        .fa-spin-pulse::before {
+        .details p {
+            margin: 5px 0;
+        }
+        .buttons {
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-lang, .btn-download {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .btn-download {
+            background-color: #FFD700; /* Dorado */
+            color: black; /* Texto negro */
+            margin-left: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-download::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
+            left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to right, green, red, pink);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: left 0.5s;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .btn-download:hover::before {
+            left: 100%;
         }
-        #progressBar::-webkit-slider-runnable-track {
-            background: #6c757d;
+        .server-list {
+            display: flex; /* Flex para controlar la disposición */
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: flex-start; /* Alinea a la izquierda */
         }
-        #progressBar::-moz-range-track {
-            background: #6c757d;
-        }
-        .progress-container #loadingBar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: linear-gradient(to right, red, #ff69b4, #ff4500);
-            border-radius: 10px;
-            width: 0%;
-            transition: width 0.2s;
-            z-index: 1;
-        }
-        .progress-container #topThumb {
-            position: absolute;
-            top: -3px;
-            left: 10;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background-color: white;
+        .server-item {
+            background-color: #555; /* Color plomo inicial */
+            padding: 12px 24px;
             cursor: pointer;
-            z-index: 2;
+            text-align: center;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s;
+        }
+        .server-item:hover {
+            transform: scale(1.05); /* Animación al pasar el cursor */
+        }
+        .server-item.selected {
+            color: black;
+        }
+        .server-item.pro.selected {
+            background-color: #FFD700; /* Dorado brillante */
+        }
+        .server-item.medio.selected {
+            background-color: #FFA500; /* Naranja medio */
+        }
+        .server-item.basico.selected {
+            background-color: #555; /* Color básico */
+        }
+        .details-top {
+            display: flex; /* Usa Flexbox para la sección superior */
+            justify-content: space-between; /* Distribuye elementos */
+            align-items: center; /* Alinea verticalmente */
+            margin-bottom: 10px; /* Espacio abajo */
+        }
+        .rating {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FFD700; /* Color dorado */
+        }
+        .btn-lang {
+            background: linear-gradient(to right, #00FF00, #FF0000, #FF69B4);
+            border-radius: 10px;
+            color: #000;
+            text-shadow: 1px 1px 2px #000;
+            transition: background-position 0.5s ease-in-out;
+        }
+        .btn-lang:hover {
+            background-position: 100% 0;
+        }
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            color: #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 3; /* Por encima de todo */
+            cursor: pointer;
+            transition: transform 0.3s;
+            animation: wave 1.5s infinite; /* Animación de olas */
+        }
+        .play-button:hover {
+            transform: scale(1.1); /* Aumenta el tamaño al pasar el cursor */
+        }
+        .play-button:active {
+            transform: scale(0.9); /* Efecto de pulsar */
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+        .share-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white; /* Fondo blanco */
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: black; /* Ícono negro */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s;
+            animation: pulse 1.5s infinite; /* Animación de pulsar */
+        }
+        .share-button:hover {
+            transform: scale(1.1); /* Aumenta el tamaño al pasar el cursor */
+        }
+        .share-button:active {
+            transform: scale(0.9); /* Efecto de pulsar */
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        .connection-message {
+            position: fixed;
+            bottom: 100px; /* Posiciona el mensaje justo encima del botón de compartir */
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7); /* Fondo oscuro semi-transparente */
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 4; /* Por encima de todo */
         }
     </style>
 </head>
 <body>
-    <div id="videoContainer">
-        <video id="video" src="https://hugh.cdn.rumble.cloud/video/fwe2/37/s8/2/Z/C/H/-/ZCH-w.aaa.mp4"></video>
-        <div id="title">Star Trek: Section 31</div>
-        <div id="centerControls">
-            <button id="rewind"><i class="fas fa-undo"></i></button>
-            <button id="playPause"><i class="fas fa-play"></i></button>
-            <button id="forward"><i class="fas fa-redo"></i></button>
+    <div class="overlay"></div> <!-• Capa de degradado más opaco -->
+    <div class="header" id="videoSection">
+        <iframe id="videoPlayer" src="https://nagi-plus4.github.io/solo_vid.github.io/REPRODUCTOR-OFICIAL-NAGI-PLUS.html?link=https://hugh.cdn.rumble.cloud/video/fwe2/37/s8/2/Z/C/H/-/ZCH-w.aaa.mp4&titulo=Star%20Trek:%20Section%2031&tiempo=30"></iframe>
+        <button class="play-button" id="playButton">
+            <i class="fas fa-play"></i>
+        </button>
+    </div>
+    <div class="content" style="display: flex;">
+        <div class="poster-container">
+            <img src="https://media.themoviedb.org/t/p/w500/bx9btF0Jo4rRF68xny7VPqHNt3z.jpg" alt="Algo embarazada Poster">
         </div>
-        <div id="skipIntro">Saltar Intro</div>
-        <div class="progress-container">
-            <input type="range" id="progressBar" min="0" max="0" value="0">
-            <div id="loadingBar"></div>
-            <div id="topThumb"></div>
-        </div>
-        <div id="controls">
-            <button id="mute"><i class="fas fa-volume-up"></i></button>
-            <div id="timeDisplay">
-                <span id="currentTime">0:00:00</span> / <span id="duration">0:00:00</span>
+        <div class="details-container">
+            <div class="details">
+                <div class="details-top">
+                    <h1>Star Trek: Section 31</h1>
+                    <div class="rating">4.7</div>
+                </div>
+                <p>Publicado: 2025 | Ciencia ficción, Aventura, Acción, Drama, Película de TV
+.</p>
+                <p>Sinopsis: En Star Trek: Sección 31, la Emperadora Philippa Georgiou, se une a una división secreta de la Flota Estelar encargada de proteger a la Federación Unida de Planetas y se enfrenta a los pecados de su pasado.</p>
+                <p>Duración: 1h 36m</p>
+                <div class="buttons">
+                    <button class="btn-lang" onclick="toggleFullscreen()">Pantalla Completa</button>
+                    <button class="btn-download">Descargar</button>
+                </div>
+                <div class="servers">
+                    <div class="servers-container">
+                        <h3>Servidores</h3>
+                    </div>
+                    <div class="server-list">
+                        <div class="server-item pro" data-server="1">Servidor 1 PRO</div>
+                        <div class="server-item medio" data-server="2">Servidor 2 Medio</div>
+                        <div class="server-item basico" data-server="3">Servidor 3 Básico</div>
+                    </div>
+                </div>
             </div>
-            <button id="fullscreen"><i class="fas fa-expand"></i></button>
-        </div>
-        <div id="spinner"><i class="fas fa-spinner fa-spin"></i>
-            <div id="spinnerText">Cargando reproductor Nagi Plus</div>
         </div>
     </div>
-<script defer>
-    const video = document.getElementById('video');
-    const videoContainer = document.getElementById('videoContainer');
-    const playPauseButton = document.getElementById('playPause');
-    const muteButton = document.getElementById('mute');
-    const fullscreenButton = document.getElementById('fullscreen');
-    const currentTimeDisplay = document.getElementById('currentTime');
-    const durationDisplay = document.getElementById('duration');
-    const rewindButton = document.getElementById('rewind');
-    const forwardButton = document.getElementById('forward');
-    const skipIntroButton = document.getElementById('skipIntro');
-    const spinner = document.getElementById('spinner');
-    const spinnerText = document.getElementById('spinnerText');
-    const progressBar = document.getElementById('progressBar');
-    const loadingBar = document.getElementById('loadingBar');
-    const topThumb = document.getElementById('topThumb');
-    const progressContainer = document.querySelector('.progress-container');
-    const controls = document.querySelectorAll('#controls, #title, #centerControls, #skipIntro, #progressBar, .progress-container');
-    let hideControlsTimeout;
-    let controlsVisible = false;
+    <button class="share-button" id="shareButton">
+        <i class="fas fa-tv"></i> <!-• Ícono de TV -->
+    </button>
+    <div class="connection-message" id="connectionMessage">Conéctate a una TV</div> <!-• Mensaje para conectarse a TV -->
+    <script>
+        const playButton = document.getElementById('playButton');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const shareButton = document.getElementById('shareButton');
+        const connectionMessage = document.getElementById('connectionMessage');
 
-    // Define los tiempos de duración del botón y de salto
-    let introDuration = 0; // Duración en segundos del botón
-    let skipToTime = 35; // Tiempo en segundos al que se saltará el video
+        // Mostrar el video al hacer clic en el botón de play
+        playButton.addEventListener('click', () => {
+            videoPlayer.style.display = 'block'; // Muestra el iframe
+            videoPlayer.src = videoPlayer.src; // Reinicia el video
+            playButton.style.display = 'none'; // Oculta el botón de play
+        });
 
-    video.addEventListener('loadeddata', () => {
-        durationDisplay.textContent = formatTime(video.duration);
-        progressBar.max = video.duration;
-        progressBar.value = 0;  // Inicializa el control deslizante al principio     
-    });
+        // Función para compartir pantalla
+        shareButton.addEventListener('click', async () => {
+            try {
+                const mediaStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: true,
+                });
+                console.log(mediaStream);
+                alert("Buscando dispositivos para compartir pantalla..."); // Alerta al buscar dispositivos
+            } catch (err) {
+                console.error("Error: " + err);
+            }
+        });
 
-    video.addEventListener('waiting', () => {
-        spinner.style.display = 'block';
-        spinnerText.style.display = 'block';
-    });
-
-    video.addEventListener('playing', () => {
-        spinner.style.display = 'none';
-        spinnerText.style.display = 'none';
-    });
-
-    video.addEventListener('timeupdate', () => {
-        currentTimeDisplay.textContent = formatTime(video.currentTime);
-        progressBar.value = video.currentTime; // Actualiza el valor del control deslizante
-        const progressPercentage = (video.currentTime / video.duration) * 100;
-        loadingBar.style.width = progressPercentage + '%'; // Actualiza el ancho de la barra
-        updateThumbPosition(); // Actualiza la posición del thumb superior
-
-        // Mostrar/ocultar el botón "Saltar Intro"
-        if (video.currentTime >= introDuration && video.currentTime <= skipToTime) {
-            skipIntroButton.style.display = 'block';
-        } else {
-            skipIntroButton.style.display = 'none';
+        // Ciclo de aparición y desaparición del mensaje
+        function toggleConnectionMessage() {
+            connectionMessage.style.opacity = 1; // Muestra el mensaje
+            setTimeout(() => {
+                connectionMessage.style.opacity = 0; // Oculta el mensaje
+            }, 10000); // Mensaje visible por 10 segundos
         }
-    });
 
-    video.addEventListener('ended', () => {
-        progressBar.value = video.duration; // Coloca el control deslizante al final
-        loadingBar.style.width = '100%'; // Coloca la barra al final
-        updateThumbPosition(); // Actualiza la posición del thumb superior
-    });
+        setInterval(() => {
+            toggleConnectionMessage();
+            setTimeout(() => {
+                connectionMessage.style.opacity = 0; // Oculta el mensaje después de 10 segundos
+            }, 5000); // Mensaje aparece cada 5 segundos
+        }, 15000); // Ciclo completo de aparición y desaparición
 
-    playPauseButton.addEventListener('click', () => {
-        if (video.paused) {
-            video.play();
-            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
-        } else {
-            video.pause();
-            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
-        }
-    });
+        // URLs de visualización de los servidores
+        const urlsVisualización = [
+            'https://nagi-plus4.github.io/solo_vid.github.io/REPRODUCTOR-OFICIAL-NAGI-PLUS.html?link=https://hugh.cdn.rumble.cloud/video/fwe2/37/s8/2/Z/C/H/-/ZCH-w.aaa.mp4&titulo=Star%20Trek:%20Section%2031&tiempo=30', // Servidor 1
+            'https://kingplayadb.blogspot.com/?m=1.html?r=aHR0cHM6Ly9wZWxpc3BsdXMucnBtc3RyZWFtLmxpdmUvI25nMTUmYW1wO2RsPTE=', // Servidor 2
+            'https://kingplayadb.blogspot.com/?m=1.html?r=aHR0cHM6Ly9uaWthcGxheWVyci5jb20vdi84Mml4NTF0MnJ4MWc=' // Servidor 3
+        ];
 
-    muteButton.addEventListener('click', () => {
-        video.muted = !video.muted;
-        muteButton.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
-    });
+        // URLs de descarga de los servidores
+        const urlsDescarga = [
+            'https://ryderjet.com/download/gl1ybcv3zrvj', // Servidor 1
+            'https://ryderjet.com/download/gl1ybcv3zrvj', // Servidor 2
+            'https://ryderjet.com/download/gl1ybcv3zrvj' // Servidor 3
+        ];
 
-    fullscreenButton.addEventListener('click', () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
-            fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
-        } else {
-            videoContainer.requestFullscreen();
-            fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
-        }
-    });
+        document.querySelectorAll('.server-item').forEach((item, index) => {
+            item.addEventListener('click', () => {
+                videoPlayer.src = urlsVisualización[index];
+                // Cambia el botón de descarga
+                downloadButton.onclick = () => {
+                    window.open(urlsDescarga[index], '_blank');
+                };
+                // Resaltar el servidor seleccionado
+                document.querySelectorAll('.server-item').forEach(el => {
+                    el.classList.remove('selected');
+                    el.style.backgroundColor = '#555'; // Resetea el color de fondo a plomo
+                });
+                item.classList.add('selected');
+                item.style.backgroundColor = item.classList.contains('pro') ? '#FFD700' : item.classList.contains('medio') ? '#FFA500' : '#555';
+            });
+        });
 
-    rewindButton.addEventListener('click', () => {
-        video.currentTime = Math.max(0, video.currentTime - 10);
-    });
-
-    forwardButton.addEventListener('click', () => {
-        video.currentTime = Math.min(video.duration, video.currentTime + 10);
-    });
-
-    skipIntroButton.addEventListener('click', () => {
-        video.currentTime = skipToTime; // Salta al tiempo definido
-        skipIntroButton.style.display = 'none';
-    });
-
-    videoContainer.addEventListener('click', (event) => {
-        if (![playPauseButton, muteButton, fullscreenButton, rewindButton, forwardButton].includes(event.target)) {
-            if (controlsVisible) {
-                hideControls(true);
+        function toggleFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
             } else {
-                showControls();
+                videoSection.requestFullscreen();
             }
         }
-    });
-
-    progressBar.addEventListener('input', () => {
-        const progressPercentage = (progressBar.value / progressBar.max) * 100;
-        loadingBar.style.width = progressPercentage + '%';
-        video.currentTime = progressBar.value;
-        updateThumbPosition();
-    });
-
-    progressContainer.addEventListener('click', (event) => {
-        const containerRect = progressContainer.getBoundingClientRect();
-        const clickPosition = event.clientX - containerRect.left;
-        const newTime = (clickPosition / containerRect.width) * video.duration;
-        video.currentTime = newTime;
-        progressBar.value = newTime;
-        const progressPercentage = (newTime / video.duration) * 100;
-        loadingBar.style.width = progressPercentage + '%';
-        updateThumbPosition();
-    });
-
-    topThumb.addEventListener('click', (event) => {
-        const containerRect = progressContainer.getBoundingClientRect();
-        const clickPosition = event.clientX - containerRect.left;
-        const newTime = (clickPosition / containerRect.width) * video.duration;
-        video.currentTime = newTime;
-        progressBar.value = newTime;
-        const progressPercentage = (newTime / video.duration) * 100;
-        loadingBar.style.width = progressPercentage + '%';
-        updateThumbPosition();
-    });
-
-
-    function updateThumbPosition() {
-        const progressPercentage = (video.currentTime / video.duration) * 100;
-        topThumb.style.left = progressPercentage + '%';
-    }
-
-    function showControls() {
-        controls.forEach(control => control.style.opacity = '1');
-        controlsVisible = true;
-        clearTimeout(hideControlsTimeout);
-    }
-
-    function hideControls(immediate = false) {
-        if (immediate) {
-            controls.forEach(control => control.style.opacity = '0');
-            controlsVisible = false;
-        } else {
-            hideControlsTimeout = setTimeout(() => {
-                if (!video.paused) {
-                    controls.forEach(control => control.style.opacity = '0');
-                    controlsVisible = false;
-                }
-            }, 3000);
-        }
-    }
-
-    function formatTime(seconds) {
-        const hrs = Math.floor(seconds / 3600);
-        const mins = Math.floor((seconds % 3600) / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    video.addEventListener('play', hideControls);
-    video.addEventListener('pause', showControls);
-    showControls();
-</script>
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 </body>
 </html>
