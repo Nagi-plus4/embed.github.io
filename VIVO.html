@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Video HLS a Pantalla Completa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            background-color: black; /* Fondo negro */
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Mantiene la proporción sin estirarse */
+        }
+        /* Estilos para el reloj */
+        .clock {
+            position: absolute;
+            top: 20px; /* Espaciado desde la parte superior */
+            left: 20px; /* Espaciado desde la izquierda */
+            font-size: 48px; /* Tamaño de la fuente */
+            color: white; /* Color del texto */
+            text-shadow: 2px 2px 0px black; /* Sombra negra a cada letra */
+        }
+        .play-pause-button, .fullscreen-button, .stretch-button {
+            position: absolute;
+            font-size: 48px; /* Tamaño del icono */
+            color: white;
+            background: none; /* Sin fondo */
+            border: none; /* Sin borde */
+            cursor: pointer;
+            display: none; /* Oculto inicialmente */
+            transition: opacity 0.2s; /* Transición suave */
+            opacity: 0.8; /* Ligera transparencia */
+        }
+        .play-pause-button:hover, .fullscreen-button:hover, .stretch-button:hover {
+            opacity: 1; /* Más opaco al pasar el ratón */
+        }
+        #topCenterButton {
+            top: 50%; /* Centro vertical */
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #bottomLeftButton {
+            bottom: 20px; /* Espaciado desde la parte inferior */
+            left: 20px; /* Espaciado desde la izquierda */
+        }
+        #fullscreenButton {
+            bottom: 20px; /* Espaciado desde la parte inferior */
+            right: 20px; /* Espaciado desde la derecha */
+        }
+        #stretchButton {
+            bottom: 80px; /* Espaciado desde la parte inferior */
+            right: 20px; /* Espaciado desde la derecha */
+        }
+        .indicator-container {
+            position: absolute;
+            bottom: 25px; /* Espaciado desde la parte inferior ajustado */
+            left: 100px; /* Ajusta la distancia desde la izquierda */
+            display: flex; /* Usar flexbox para alinear elementos */
+            align-items: center; /* Centra verticalmente */
+            background-color: rgba(0, 0, 0, 0.7); /* Fondo negro semitransparente */
+            padding: 5px 10px; /* Espaciado interno */
+            border-radius: 5px; /* Bordes redondeados */
+            border: 2px solid rgba(0, 0, 0, 0.5); /* Borde negro transparente */
+            cursor: pointer; /* Hacerlo presionable */
+        }
+        .blink-button {
+            width: 20px; /* Ancho del botón más pequeño */
+            height: 20px; /* Alto del botón más pequeño */
+            background-color: red; /* Color de fondo rojo */
+            border-radius: 50%; /* Hacerlo redondo */
+            animation: blink 2s infinite; /* Animación de parpadeo */
+            border: 2px solid rgba(0, 0, 0, 0.5); /* Borde negro transparente */
+            margin-right: 5px; /* Espaciado a la derecha del botón */
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .spinner-container {
+            position: absolute;
+            top: 50%; /* Centrado vertical */
+            left: 50%; /* Centrado horizontal */
+            transform: translate(-50%, -35%); /* Ajusta la posición para centrar */
+            text-align: center; /* Centra el texto */
+            display: none; /* Oculto inicialmente */
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3); /* Color del spinner */
+            border-top: 4px solid red; /* Color del spinner */
+            border-radius: 50%;
+            width: 60px; /* Ancho del spinner */
+            height: 60px; /* Alto del spinner */
+            animation: spin 1s linear infinite; /* Animación de giro */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white; /* Color del texto */
+            margin-top: 10px; /* Espacio entre el spinner y el texto */
+        }
+    </style>
+</head>
+<body>
+
+<div id="clock" class="clock"></div> <!-• Elemento para la hora -->
+<video id="video">
+    Your browser does not support the video tag.
+</video>
+<button id="topCenterButton" class="play-pause-button" aria-label="Reproducir/Pausar">▶</button>
+<button id="bottomLeftButton" class="play-pause-button" aria-label="Reproducir/Pausar">▶</button>
+<button id="fullscreenButton" class="fullscreen-button" aria-label="Pantalla Completa"><i class="fas fa-expand"></i></button>
+<button id="stretchButton" class="stretch-button" aria-label="Estirar Pantalla"><i class="fas fa-arrows-alt-h"></i></button>
+
+<div class="indicator-container" id="indicatorContainer">
+    <div class="blink-button" id="blinkButton"></div> 
+    <div class="live-indicator" style="color: red;">En Vivo</div> 
+</div>
+
+<div class="spinner-container" id="spinnerContainer">
+    <div class="spinner" id="spinner"></div> 
+    <div class="loading-text">Cargando...</div> 
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+    var video = document.getElementById('video');
+    var topCenterButton = document.getElementById('topCenterButton');
+    var bottomLeftButton = document.getElementById('bottomLeftButton');
+    var fullscreenButton = document.getElementById('fullscreenButton');
+    var stretchButton = document.getElementById('stretchButton');
+    var spinnerContainer = document.getElementById('spinnerContainer');
+    var blinkButton = document.getElementById('blinkButton');
+    var indicatorContainer = document.getElementById('indicatorContainer');
+
+    // Función para obtener el parámetro de la URL
+    function getVideoUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('link'); // Obtiene el valor del parámetro 'link'
+    }
+
+    // Cargar el video desde la URL obtenida
+    function loadVideo() {
+        var videoSrc = getVideoUrl() || 'https://d19e55ehz2il4i.cloudfront.net/original.m3u8'; // Reemplaza con tu enlace HLS por defecto
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                topCenterButton.style.display = 'block'; // Muestra el botón de reproducción
+                bottomLeftButton.style.display = 'block'; // Muestra el botón de reproducción
+                fullscreenButton.style.display = 'block'; // Muestra el botón de pantalla completa
+                stretchButton.style.display = 'block'; // Muestra el botón de estirar pantalla
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function() {
+                topCenterButton.style.display = 'block'; // Muestra el botón de reproducción
+                bottomLeftButton.style.display = 'block'; // Muestra el botón de reproducción
+                fullscreenButton.style.display = 'block'; // Muestra el botón de pantalla completa
+                stretchButton.style.display = 'block'; // Muestra el botón de estirar pantalla
+            });
+        }
+    }
+
+    // Carga inicial del video
+    loadVideo();
+
+    // Muestra el spinner cuando se está cargando el video
+    video.addEventListener('waiting', function() {
+        spinnerContainer.style.display = 'block'; // Muestra el spinner
+    });
+
+    // Oculta el spinner cuando el video comienza a reproducirse
+    video.addEventListener('playing', function() {
+        spinnerContainer.style.display = 'none'; // Oculta el spinner
+    });
+
+    // Función para alternar play/pause
+    function togglePlayPause() {
+        if (video.paused) {
+            video.play();
+            topCenterButton.textContent = '❚❚'; // Cambia a pausa
+            bottomLeftButton.textContent = '❚❚'; // Cambia a pausa
+        } else {
+            video.pause();
+            topCenterButton.textContent = '▶'; // Cambia a play
+            bottomLeftButton.textContent = '▶'; // Cambia a play
+        }
+    }
+
+    // Asocia la función a ambos botones
+    topCenterButton.addEventListener('click', togglePlayPause);
+    bottomLeftButton.addEventListener('click', togglePlayPause);
+
+    // Maneja el clic en el botón de pantalla completa
+    fullscreenButton.addEventListener('click', function() {
+        if (video.requestFullscreen) {
+            video.requestFullscreen();
+        } else if (video.mozRequestFullScreen) { // Firefox
+            video.mozRequestFullScreen();
+        } else if (video.webkitRequestFullscreen) { // Chrome, Safari y Opera
+            video.webkitRequestFullscreen();
+        } else if (video.msRequestFullscreen) { // IE/Edge
+            video.msRequestFullscreen();
+        }
+    });
+
+    // Maneja el clic en el botón de estirar pantalla
+    stretchButton.addEventListener('click', function() {
+        if (video.style.objectFit === 'cover') {
+            video.style.objectFit = 'contain'; // Cambia a contener
+            stretchButton.innerHTML = '<i class="fas fa-arrows-alt-h"></i>'; // Cambia el icono
+        } else {
+            video.style.objectFit = 'cover'; // Estira el video
+            stretchButton.innerHTML = '<i class="fas fa-arrows-alt-v"></i>'; // Cambia el icono
+        }
+    });
+
+    // Maneja el clic en la pantalla
+    document.addEventListener('click', function(event) {
+        // Verifica si el clic fue en un botón
+        if (!event.target.closest('.play-pause-button') && !event.target.closest('.indicator-container') && !event.target.closest('.fullscreen-button') && !event.target.closest('.stretch-button')) {
+            // Alterna la visibilidad de los botones, el texto "En Vivo" y la hora
+            if (topCenterButton.style.display === 'none') {
+                topCenterButton.style.display = 'block';
+                bottomLeftButton.style.display = 'block';
+                fullscreenButton.style.display = 'block';
+                stretchButton.style.display = 'block';
+                indicatorContainer.style.display = 'flex'; // Muestra el contenedor del indicador
+                document.getElementById('clock').style.display = 'block'; // Muestra la hora
+            } else {
+                topCenterButton.style.display = 'none';
+                bottomLeftButton.style.display = 'none';
+                fullscreenButton.style.display = 'none';
+                stretchButton.style.display = 'none';
+                indicatorContainer.style.display = 'none'; // Oculta el contenedor del indicador
+                document.getElementById('clock').style.display = 'none'; // Oculta la hora
+            }
+        }
+    });
+
+    // Maneja el clic en el botón parpadeante
+    blinkButton.addEventListener('click', function(event) {
+        event.stopPropagation(); // Evita que el clic se propague al documento
+        // Adelanta el video si está retrasado
+        if (video.readyState < 3) { // Si el video está retrasado
+            video.currentTime += 5; // Adelanta 5 segundos
+            blinkButton.style.backgroundColor = 'red'; // Cambia a rojo
+        }
+    });
+
+    // Función para actualizar la hora
+    function updateClock() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12; // Convertir a formato de 12 horas
+        const displayMinutes = minutes < 10 ? '0' + minutes : minutes; // Añadir ceros a la izquierda
+        document.getElementById('clock').textContent = displayHours + ':' + displayMinutes + ' ' + ampm;
+    }
+
+    // Actualiza la hora cada segundo
+    setInterval(updateClock, 1000);
+    updateClock(); // Llama la función una vez al cargar
+</script>
+
+</body>
+</html>
