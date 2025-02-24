@@ -185,6 +185,11 @@
         spinnerText.style.display = 'block'; // Mostrar texto del spinner
     });
 
+    video.addEventListener('error', () => {
+        spinner.style.display = 'block'; // Mostrar spinner en caso de error
+        spinnerText.style.display = 'block'; // Mostrar texto del spinner en caso de error
+    });
+
     video.addEventListener('timeupdate', () => {
         currentTimeDisplay.textContent = formatTime(video.currentTime);
     });
