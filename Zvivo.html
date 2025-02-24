@@ -83,13 +83,14 @@
         }
         #spinner {
             position: absolute;
-            top: 50%;
+            top: 45%; /* Ajustar para estar debajo del botón Play */
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 70px;
             display: none; /* Ocultar inicialmente */
             color: white;
             text-align: center;
+            z-index: 20; /* Asegurarse de que esté encima de otros elementos */
         }
         #spinnerText {
             font-size: 24px;
@@ -115,6 +116,10 @@
         <div id="title">Título de Video en Vivo</div>
         <div id="centerControls">
             <button id="playPause"><i class="fas fa-play"></i></button>
+            <div id="spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div id="spinnerText">Cargando...</div>
+            </div>
         </div>
         <div id="controls">
             <button id="mute"><i class="fas fa-volume-up"></i></button>
@@ -124,9 +129,6 @@
             <button id="fullscreen"><i class="fas fa-expand"></i></button>
         </div>
         <div id="currentTimeDisplay"><span id="peruTime"></span></div>
-        <div id="spinner"><i class="fas fa-spinner fa-spin"></i>
-            <div id="spinnerText">Cargando reproductor en vivo</div>
-        </div>
     </div>
 <script defer>
     // Función para obtener parámetros de la URL
