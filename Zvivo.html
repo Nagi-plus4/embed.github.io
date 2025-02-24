@@ -83,17 +83,17 @@
         }
         #spinner {
             position: absolute;
-            top: 50%;
+            top: 52%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 70px;
-            display: none;
+            font-size: 100px;
+            display: none; /* Ocultar inicialmente */
             color: white;
             text-align: center;
         }
         #spinnerText {
             font-size: 24px;
-            display: none;
+            display: none; /* Ocultar inicialmente */
             color: white;
             margin-top: 15px;
         }
@@ -112,7 +112,7 @@
 <body>
     <div id="videoContainer">
         <video id="video" controls></video>
-        <div id="title">Título de Video en Vivo</div>
+        <div id="title">Nagi Plus en vivo</div>
         <div id="centerControls">
             <button id="playPause"><i class="fas fa-play"></i></button>
         </div>
@@ -125,7 +125,7 @@
         </div>
         <div id="currentTimeDisplay"><span id="peruTime"></span></div>
         <div id="spinner"><i class="fas fa-spinner fa-spin"></i>
-            <div id="spinnerText">Cargando reproductor en vivo</div>
+            <div id="spinnerText">Cargando reproductor Nagi Plus</div>
         </div>
     </div>
 <script defer>
@@ -170,13 +170,13 @@
     });
 
     video.addEventListener('waiting', () => {
-        spinner.style.display = 'block';
-        spinnerText.style.display = 'block';
+        spinner.style.display = 'block'; // Mostrar spinner
+        spinnerText.style.display = 'block'; // Mostrar texto del spinner
     });
 
     video.addEventListener('playing', () => {
-        spinner.style.display = 'none';
-        spinnerText.style.display = 'none';
+        spinner.style.display = 'none'; // Ocultar spinner
+        spinnerText.style.display = 'none'; // Ocultar texto del spinner
     });
 
     video.addEventListener('timeupdate', () => {
