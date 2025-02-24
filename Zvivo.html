@@ -34,6 +34,7 @@
             opacity: 1; /* Hacer visibles los controles */
             color: white;
             z-index: 10;
+            transition: opacity 0.3s; /* Transición para la opacidad */
         }
         #controls {
             bottom: 0;
@@ -148,7 +149,6 @@
             if (videoTitle) {
                 document.getElementById('title').innerText = videoTitle;
             }
-            // Se ha eliminado el autoplay
         }
         setInterval(updatePeruTime, 1000); // Actualizar la hora cada segundo
     };
@@ -161,6 +161,9 @@
     const durationDisplay = document.getElementById('duration');
     const spinner = document.getElementById('spinner');
     const spinnerText = document.getElementById('spinnerText');
+    const controls = document.querySelectorAll('#controls, #title, #centerControls, #currentTimeDisplay');
+
+    let controlsVisible = true; // Estado de visibilidad de controles
 
     video.addEventListener('loadeddata', () => {
         durationDisplay.textContent = "En vivo";
@@ -180,7 +183,8 @@
         currentTimeDisplay.textContent = formatTime(video.currentTime);
     });
 
-    playPauseButton.addEventListener('click', () => {
+    playPauseButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Evitar que el evento se propague
         if (video.paused) {
             video.play();
             playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
@@ -190,18 +194,31 @@
         }
     });
 
-    muteButton.addEventListener('click', () => {
+    muteButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Evitar que el evento se propague
         video.muted = !video.muted;
         muteButton.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
     });
 
-    fullscreenButton.addEventListener('click', () => {
+    fullscreenButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Evitar que el evento se propague
         if (document.fullscreenElement) {
             document.exitFullscreen();
             fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
         } else {
             videoContainer.requestFullscreen();
             fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+        }
+    });
+
+    // Evento para mostrar/ocultar los controles cuando se toca en cualquier parte del videoContainer
+    videoContainer.addEventListener('click', () => {
+        if (controlsVisible) {
+            controls.forEach(control => control.style.opacity = '0'); // Ocultar controles
+            controlsVisible = false; // Cambiar estado a invisible
+        } else {
+            controls.forEach(control => control.style.opacity = '1'); // Mostrar controles
+            controlsVisible = true; // Cambiar estado a visible
         }
     });
 
