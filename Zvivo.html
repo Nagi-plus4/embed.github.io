@@ -1,0 +1,223 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Video en Vivo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
+    <style>
+        body {
+            background-color: #000;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #videoContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #000;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        #controls, #title, #centerControls, #currentTimeDisplay {
+            position: absolute;
+            opacity: 1; /* Hacer visibles los controles */
+            color: white;
+            z-index: 10;
+        }
+        #controls {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        button {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 50px;
+            cursor: pointer;
+            outline: none;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #playPause {
+            background: none; /* Quitar fondo del botón Play */
+        }
+        #timeDisplay {
+            font-size: 20px;
+        }
+        #title {
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            z-index: 20;
+        }
+        #centerControls {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+        #currentTimeDisplay {
+            top: 20px;
+            right: 20px;
+            font-size: 20px;
+            z-index: 20;
+        }
+        #spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 70px;
+            display: none;
+            color: white;
+            text-align: center;
+        }
+        #spinnerText {
+            font-size: 24px;
+            display: none;
+            color: white;
+            margin-top: 15px;
+        }
+        /* Ocultar los controles nativos */
+        video::-webkit-media-controls {
+            display: none !important;
+        }
+        video::-moz-media-controls {
+            display: none !important;
+        }
+        video::-ms-media-controls {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="videoContainer">
+        <video id="video" controls></video>
+        <div id="title">Título de Video en Vivo</div>
+        <div id="centerControls">
+            <button id="playPause"><i class="fas fa-play"></i></button>
+        </div>
+        <div id="controls">
+            <button id="mute"><i class="fas fa-volume-up"></i></button>
+            <div id="timeDisplay">
+                <span id="currentTime">0:00:00</span> / <span id="duration">En vivo</span>
+            </div>
+            <button id="fullscreen"><i class="fas fa-expand"></i></button>
+        </div>
+        <div id="currentTimeDisplay"><span id="peruTime"></span></div>
+        <div id="spinner"><i class="fas fa-spinner fa-spin"></i>
+            <div id="spinnerText">Cargando reproductor en vivo</div>
+        </div>
+    </div>
+<script defer>
+    // Función para obtener parámetros de la URL
+    function getParameterByName(name) {
+        const url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+              results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    const videoLink = getParameterByName('link');
+    const videoTitle = getParameterByName('titulo');
+
+    window.onload = function() {
+        if (videoLink) {
+            video.src = videoLink;
+            if (videoTitle) {
+                document.getElementById('title').innerText = videoTitle;
+            }
+            // Se ha eliminado el autoplay
+        }
+        setInterval(updatePeruTime, 1000); // Actualizar la hora cada segundo
+    };
+
+    const video = document.getElementById('video');
+    const playPauseButton = document.getElementById('playPause');
+    const muteButton = document.getElementById('mute');
+    const fullscreenButton = document.getElementById('fullscreen');
+    const currentTimeDisplay = document.getElementById('currentTime');
+    const durationDisplay = document.getElementById('duration');
+    const spinner = document.getElementById('spinner');
+    const spinnerText = document.getElementById('spinnerText');
+
+    video.addEventListener('loadeddata', () => {
+        durationDisplay.textContent = "En vivo";
+    });
+
+    video.addEventListener('waiting', () => {
+        spinner.style.display = 'block';
+        spinnerText.style.display = 'block';
+    });
+
+    video.addEventListener('playing', () => {
+        spinner.style.display = 'none';
+        spinnerText.style.display = 'none';
+    });
+
+    video.addEventListener('timeupdate', () => {
+        currentTimeDisplay.textContent = formatTime(video.currentTime);
+    });
+
+    playPauseButton.addEventListener('click', () => {
+        if (video.paused) {
+            video.play();
+            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    });
+
+    muteButton.addEventListener('click', () => {
+        video.muted = !video.muted;
+        muteButton.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+    });
+
+    fullscreenButton.addEventListener('click', () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+            fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+        } else {
+            videoContainer.requestFullscreen();
+            fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+        }
+    });
+
+    function updatePeruTime() {
+        const options = { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: true };
+        const date = new Date().toLocaleString('es-PE', options);
+        const [time, period] = date.split(' '); // Separar la hora y el período (AM/PM)
+        document.getElementById('peruTime').textContent = `${time} ${period === 'a.m.' ? 'AM' : 'PM'}`; // Reemplazar "a.m." por "AM"
+    }
+
+    function formatTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+</script>
+</body>
+</html>
