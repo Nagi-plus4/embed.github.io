@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -30,10 +31,10 @@
         }
         #controls, #title, #centerControls, #currentTimeDisplay {
             position: absolute;
-            opacity: 1; /* Hacer visibles los controles */
+            opacity: 1;
             color: white;
             z-index: 10;
-            transition: opacity 0.3s; /* Transición para la opacidad */
+            transition: opacity 0.3s;
         }
         #controls {
             bottom: 0;
@@ -55,7 +56,7 @@
             border-radius: 5px;
         }
         #playPause {
-            background: none; /* Quitar fondo del botón Play */
+            background: none;
         }
         #timeDisplay {
             font-size: 20px;
@@ -66,6 +67,12 @@
             font-size: 24px;
             z-index: 20;
         }
+        #currentTimeDisplay {
+            top: 60px; /* Ajustamos la posición para que esté debajo del título */
+            left: 20px;
+            font-size: 20px;
+            z-index: 20;
+        }
         #centerControls {
             top: 50%;
             left: 50%;
@@ -73,12 +80,6 @@
             display: flex;
             gap: 40px;
             align-items: center;
-        }
-        #currentTimeDisplay {
-            top: 20px;
-            right: 20px;
-            font-size: 20px;
-            z-index: 20;
         }
         #spinner {
             position: absolute;
@@ -96,7 +97,6 @@
             color: white;
             margin-top: 15px;
         }
-        /* Ocultar los controles nativos */
         video::-webkit-media-controls {
             display: none !important;
         }
@@ -106,12 +106,21 @@
         video::-ms-media-controls {
             display: none !important;
         }
+        #logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 100px; /* Ajusta el tamaño del logo */
+            z-index: 30;
+        }
     </style>
 </head>
 <body>
     <div id="videoContainer">
         <video id="video" controls></video>
+        <img id="logo" src="https://www.appcreator24.com/srv/imgs/gen/3484058_icohome.png?ts=1740724158" alt="Logo">
         <div id="title">Título de Video en Vivo</div>
+        <div id="currentTimeDisplay"><span id="peruTime"></span></div> <!-• Moved here -->
         <div id="centerControls">
             <button id="playPause"><i class="fas fa-play"></i></button>
         </div>
@@ -122,13 +131,11 @@
             </div>
             <button id="fullscreen"><i class="fas fa-expand"></i></button>
         </div>
-        <div id="currentTimeDisplay"><span id="peruTime"></span></div>
         <div id="spinner"><i class="fas fa-spinner fa-spin"></i>
             <div id="spinnerText">Cargando reproductor en vivo</div>
         </div>
     </div>
 <script defer>
-    // Función para obtener parámetros de la URL
     function getParameterByName(name) {
         const url = window.location.href;
         name = name.replace(/[\[\]]/g, '\\$&');
@@ -149,7 +156,7 @@
                 document.getElementById('title').innerText = videoTitle;
             }
         }
-        setInterval(updatePeruTime, 1000); // Actualizar la hora cada segundo
+        setInterval(updatePeruTime, 1000);
     };
 
     const video = document.getElementById('video');
@@ -162,7 +169,7 @@
     const spinnerText = document.getElementById('spinnerText');
     const controls = document.querySelectorAll('#controls, #title, #centerControls, #currentTimeDisplay');
 
-    let controlsVisible = true; // Estado de visibilidad de controles
+    let controlsVisible = true;
 
     video.addEventListener('loadeddata', () => {
         durationDisplay.textContent = "En vivo";
@@ -183,7 +190,7 @@
     });
 
     playPauseButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // Evitar que el evento se propague
+        event.stopPropagation();
         if (video.paused) {
             video.play();
             playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
@@ -194,13 +201,13 @@
     });
 
     muteButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // Evitar que el evento se propague
+        event.stopPropagation();
         video.muted = !video.muted;
         muteButton.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
     });
 
     fullscreenButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // Evitar que el evento se propague
+        event.stopPropagation();
         if (document.fullscreenElement) {
             document.exitFullscreen();
             fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
@@ -210,22 +217,21 @@
         }
     });
 
-    // Evento para mostrar/ocultar los controles cuando se toca en cualquier parte del videoContainer
     videoContainer.addEventListener('click', () => {
         if (controlsVisible) {
-            controls.forEach(control => control.style.opacity = '0'); // Ocultar controles
-            controlsVisible = false; // Cambiar estado a invisible
+            controls.forEach(control => control.style.opacity = '0');
+            controlsVisible = false;
         } else {
-            controls.forEach(control => control.style.opacity = '1'); // Mostrar controles
-            controlsVisible = true; // Cambiar estado a visible
+            controls.forEach(control => control.style.opacity = '1');
+            controlsVisible = true;
         }
     });
 
     function updatePeruTime() {
         const options = { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: true };
         const date = new Date().toLocaleString('es-PE', options);
-        const [time, period] = date.split(' '); // Separar la hora y el período (AM/PM)
-        document.getElementById('peruTime').textContent = `${time} ${period === 'a.m.' ? 'AM' : 'PM'}`; // Reemplazar "a.m." por "AM"
+        const [time, period] = date.split(' ');
+        document.getElementById('peruTime').textContent = `${time} ${period === 'a.m.' ? 'AM' : 'PM'}`;
     }
 
     function formatTime(seconds) {
