@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canales de Sudamérica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #1c1c1c;
+            color: white;
+        }
+
+        .video-container {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .video-container img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            position: absolute;
+            bottom: 10px;
+            font-size: 18px;
+            color: #fff;
+            display: none;
+        }
+
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            position: sticky;
+            top: 300px;
+            z-index: 1000;
+            background-color: #1c1c1c;
+            padding: 10px 0;
+        }
+
+        .search-bar input {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background-color: #2a2a2a;
+            color: white;
+        }
+
+        .search-bar input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .search-bar button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-bar button:hover {
+            background-color: #45a049;
+        }
+
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            background: url('https://img.icons8.com/ios-filled/50/ffffff/search.png') no-repeat center;
+            background-size: contain;
+            border: none;
+            cursor: pointer;
+        }
+
+        .favorite-icon {
+            background: url('https://img.icons8.com/ios-filled/50/ffffff/star.png') no-repeat center;
+            background-size: 20px 20px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .favorite-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .channel-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .channel {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        .channel:hover {
+            background: #444;
+        }
+
+        .channel img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .channel-details {
+            flex: 1;
+        }
+
+        .channel h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .channel p {
+            margin: 0;
+            color: #bbb;
+        }
+
+        .channel-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .channel-button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #35424a;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .channel-button.favorite {
+            background-color: red;
+        }
+
+        .channel-button:hover {
+            background-color: #4a4a4a;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: black;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: red;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .favorite-button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #35424a;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .favorite-button:hover {
+            background-color: #4a4a4a;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1001;
+            display: none;
+            transition: opacity 0.5s;
+            width: 300px;
+            text-align: center;
+        }
+
+        .notification.success {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        .notification.error {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
+        .notification.info {
+            background: rgba(255, 205, 86, 0.9);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="video-container" id="video-container">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/tv.png" alt="TV Icon">
+        <div class="spinner" id="spinner"></div>
+        <div class="loading-text" id="loading-text">Cargando...</div>
+        Selecciona un canal para ver
+    </div>
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar canal..." oninput="filterChannels()">
+        <button class="search-icon" onclick="filterChannels()"></button>
+        <div class="favorite-icon" onclick="showFavorites()"></div>
+    </div>
+    <ul class="channel-list" id="channel-list">
+        <!-• Los canales se agregarán aquí mediante JavaScript -->
+    </ul>
+
+    <!-• Modal para mostrar favoritos -->
+    <div id="favoritesModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">×</span>
+            <h2>Canales Favoritos</h2>
+            <div id="favoritesList"></div>
+        </div>
+    </div>
+
+    <!-• Notificación -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const channels = [
+            { id: "001", name: "ACCIÓN ANIME", description: "Canal de entretenimiento y acción.", image: "https://i.ibb.co/LdWT6yS8/42-sin-t-tulo-20250228032852.png", video: "https://nagi-plus4.github.io/embed.github.io/Nagi-vivo.html?link=https://stream-us-east-1.getpublica.com/cl/250228cv0n8ia4ce92q0074ql0/1280x720_3440800_0_f.m3u8?i=586_11057&titulo=Nagi%20Plus:%20ACCION" },
+            { id: "002", name: "Panamericana TV", description: "Canal de noticias y entretenimiento.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Segundo_Logotipo_de_Panamericana_Televisi%C3%B3n.svg", video: "https://nagi-plus4.github.io/embed.github.io/Nagi-vivo.html?link=https://usw22-0.playlist.live-video.net/v1/playlist/CqwFdb_B_k4f91G0BnKpeLNsKmS8998k3f6Nd229JaexSaHIokkc9uV5BLRbEOwle8AXdGbHcUJaO8vX0aAW5S6ctoeyQJj_wf7x_UaZ4bDPTUGXyZoBABYLfzpTV0DjM_hvgzxYAltLQj8HrCW2YkjB_SYOp6SoEXgWXChztp1KBQQsE0xFcSVPSj9cPp6XfPEiGwRBsw26kl2MUhjJofh1cnlaFgwWzvV8MFAvRPiBF2lUFvmS1O_VBJt1zEk3H814XnxenvbkBymOd3WNslSR_rG5d_xOyG175BJpkdXhj-S3TAPcTLNfFe8FRtgvlnf5CbgBoCj5KXc8_rTsp91q7khsI1lHpZ6QaZK7VNAo9Z6-XUGQ08RwS6ous46Xm8KL8QMFVNBEplNRhNH_T0DkklF_YyWFiT4v6UFlAwZDhqVzXkdFT9nxDSIe7bgglCQZJCmuuF0-wp1kZZahPYABzwsQQrAj_hYe3PSjxnPp1SPv-_4u-H5k4gZBe235JfbXCTFaup3OU_A-NLb_tg7V0aBKwPQga6LX23xceR8XW6XMplMTIgfdXoSjyO5XTwNgeMnhI44hByPhoxWJNjmBaHdmnMB_l5Wo_2Wr_DJ6I4Av0APJkQrSsj7WChWiPURdR7xs4KmhNfc154qpPdPlprWlEKdFRtKKO-zZc0vaIZEGmu-B6I1W8IRcd4VjhPB1GJJlii-0-ZKRhlZ0cYxOYtIGghar-3BWyTttmyvVYYuxf0GGJr21xH97p7l5qi5usfGpEKtY03l62j4QkdbqVvNw7o-U2W1OrFL3pJub9u2Ip1FEP5b7SJIh6RrLLkuWFfPSDnEBySatR2YgUBNIvQ75_t_cknjweP2t9gp2-RMKcVEepMgD9zBKc1iJ1bu96BGgr5c3h47y9Z5cGgwNpqTZxhJHDs1-bQkgASoJdXMtZWFzdC0yMNYL.m3u8&titulo=Panamericana%20TV" },
+            { id: "003", name: "ATV", description: "Canal de noticias y programas de entretenimiento.", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMokced8A_jYzye3iAfPZKl2VqHgr7jVb1VEHuLMeLsxDuXlEZ9sZe-lY&s=10", video: "https://nagi-plus4.github.io/embed.github.io/Nagi-vivo.html?link=https://d19e55ehz2il4i.cloudfront.net/original.m3u8&titulo=ATV" },
+            { id: "004", name: "Latina TV", description: "noticias de hoy, programas, novelas y series favoritas.", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_ypvQN3sJgpzB4jjOurLHt6TTGeizI85iEBoMtVlxUa7AyX8KA51ZZUm_&s=10", video: "https://nagi-plus4.github.io/embed.github.io/Nagi-vivo.html?link=https://redirector.rudo.video/hls-video/567ffde3fa319fadf3419efda25619456231dfea/latina/latina.smil/playlist.m3u8?did=b227802389367c16969ab8db&titulo=Latina%20TV" },
+            { id: "005", name: "TV PERÚ", description: "Canal de noticias y deportes.", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_V8ncefTeCw_6F1z94ILKJCtoWbL8OcmCOJ5E1wftaoLaD0ojLX8_bD3p&s=10", video: "https://nagi-plus4.github.io/embed.github.io/Nagi-vivo.html?link=https://cdnhd.iblups.com/hls/777b4d4cc0984575a7d14f6ee57dbcaf.m3u8?i=586_11057&titulo=TV%20%20PER%C3%9A" },
+            { id: "019", name: "Telemundo", description: "Canal de entretenimiento y noticias.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Telemundo_logo.svg/1200px-Telemundo_logo.svg.png", video: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+            { id: "020", name: "CCTV", description: "Canal con programación internacional.", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/CCTV_logo.svg/1200px-CCTV_logo.svg.png", video: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+        ];
+
+        const favorites = new Set(JSON.parse(localStorage.getItem('favorites')) || []);
+        const channelList = document.getElementById("channel-list");
+        const favoritesList = document.getElementById("favoritesList");
+        const notification = document.getElementById("notification");
+        const videoContainer = document.getElementById("video-container");
+        const spinner = document.getElementById("spinner");
+        const loadingText = document.getElementById("loading-text");
+
+        function normalizeString(str) {
+            return str
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[.,;:()]/g, "")
+                .toLowerCase();
+        }
+
+        function displayChannels(channelsToDisplay) {
+            channelList.innerHTML = '';
+            channelsToDisplay.forEach(channel => {
+                const channelLi = document.createElement("li");
+                channelLi.className = "channel";
+                channelLi.innerHTML = `
+                    <img src="${channel.image}" alt="${channel.name}" onclick="loadVideo('${channel.video}')">
+                    <div class="channel-details" onclick="loadVideo('${channel.video}')">
+                        <h2>${channel.id} • ${channel.name}</h2>
+                        <p>${channel.description}</p>
+                    </div>
+                    <div class="channel-buttons">
+                        <button class="channel-button ${favorites.has(channel.id) ? 'favorite' : ''}" 
+                        onclick="toggleFavorite('${channel.id}'); event.stopPropagation();">
+                            ${favorites.has(channel.id) ? 'Eliminar de Favoritos' : 'Agregar a Favoritos'}
+                        </button>
+                    </div>
+                `;
+                channelList.appendChild(channelLi);
+            });
+        }
+
+        function loadVideo(videoUrl) {
+            spinner.style.display = 'block';
+            loadingText.style.display = 'block';
+            videoContainer.innerHTML = '';
+            setTimeout(() => {
+                videoContainer.innerHTML = `
+                    <iframe width="100%" height="100%" src="${videoUrl}" frameborder="0" allowfullscreen></iframe>
+                `;
+                closeModal();
+                spinner.style.display = 'none';
+                loadingText.style.display = 'none';
+            }, 2000);
+        }
+
+        function filterChannels() {
+            const searchInput = document.getElementById("search-input").value;
+            const normalizedInput = normalizeString(searchInput);
+            const filteredChannels = channels.filter(channel => 
+                normalizeString(channel.name).includes(normalizedInput) || 
+                normalizeString(channel.description).includes(normalizedInput)
+            );
+            displayChannels(filteredChannels);
+        }
+
+        function toggleFavorite(channelId) {
+            if (favorites.has(channelId)) {
+                favorites.delete(channelId);
+                showNotification(`Canal ${channelId} eliminado de favoritos.`, "error");
+            } else {
+                favorites.add(channelId);
+                showNotification(`Canal ${channelId} agregado a favoritos.`, "success");
+            }
+            localStorage.setItem('favorites', JSON.stringify([...favorites]));
+            displayChannels(channels);
+        }
+
+        function showFavorites() {
+            favoritesList.innerHTML = '';
+            if (favorites.size === 0) {
+                favoritesList.innerHTML = '<p>No hay canales en favoritos.</p>';
+            } else {
+                channels.forEach(channel => {
+                    if (favorites.has(channel.id)) {
+                        const button = document.createElement("button");
+                        button.className = "favorite-button";
+                        button.innerText = `${channel.name} (${channel.id})`;
+                        button.onclick = () => {
+                            loadVideo(channel.video);
+                        };
+                        favoritesList.appendChild(button);
+                    }
+                });
+            }
+            document.getElementById("favoritesModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("favoritesModal").style.display = "none";
+        }
+
+        function showNotification(message, type = "success") {
+            notification.innerText = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            displayChannels(channels);
+        });
+    </script>
+</body>
+
+</html>
