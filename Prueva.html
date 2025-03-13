@@ -1,0 +1,290 @@
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Video Profesional</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
+    <style>
+        body {
+            background-color: #000;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #videoContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #000;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #controls, #title, #centerControls, #skipIntro {
+            position: absolute;
+            opacity: 1; /* Cambiado a 1 para que sea visible */
+            color: white;
+            z-index: 10;
+        }
+        #controls {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        button {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 50px;
+            cursor: pointer;
+            outline: none;
+            padding: 10px;
+        }
+        #timeDisplay {
+            font-size: 20px;
+        }
+        #title {
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+        }
+        #centerControls {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+        #slider {
+            width: 98%;
+            height: 20px;
+            border-radius: 10px;
+            background: #808080;
+            cursor: pointer;
+            position: absolute;
+            bottom: 100px;
+            left: 1%;
+            right: 1%;
+            z-index: 1;
+        }
+        #skipIntro {
+            top: 20px;
+            right: 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        #spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 70px;
+            display: none;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+        }
+        #spinnerText {
+            font-size: 24px;
+            display: none;
+            color: white;
+            text-align: center;
+            text-shadow: 1px 0 black, -1px 0 black, 0 1px black, 0 -1px black;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="videoContainer">
+        <video id="video" src=""></video>
+        <div id="title">titulo de video</div>
+        <div id="centerControls">
+            <button id="rewind"><i class="fas fa-undo"></i></button>
+            <button id="playPause"><i class="fas fa-play"></i></button>
+            <button id="forward"><i class="fas fa-redo"></i></button>
+        </div>
+        <div id="skipIntro">Saltar Intro</div>
+        <input type="range" id="slider" min="0" max="100" value="0">
+        <div id="controls">
+            <button id="mute"><i class="fas fa-volume-up"></i></button>
+            <div id="timeDisplay">
+                <span id="currentTime">0:00:00</span> / <span id="duration">0:00:00</span>
+            </div>
+            <button id="fullscreen"><i class="fas fa-expand"></i></button>
+        </div>
+        <div id="spinner"><i class="fas fa-spinner fa-spin"></i>
+            <div id="spinnerText">Cargando reproductor Nagi Plus</div>
+        </div>
+    </div>
+
+    <script defer>
+        // Función para obtener parámetros de la URL
+        function getParameterByName(name) {
+            const url = window.location.href; // Obtiene la URL actual
+            name = name.replace(/[\[\]]/g, '\\$&'); // Escapa caracteres especiales
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                  results = regex.exec(url); // Busca el parámetro en la URL
+            if (!results) return null; // Si no se encuentra, retorna null
+            if (!results[2]) return ''; // Si no tiene valor, retorna una cadena vacía
+            return decodeURIComponent(results[2].replace(/\+/g, ' ')); // Decodifica el valor
+        }
+        // Obtener parámetros de la URL
+        const videoLink = getParameterByName('link');
+        const videoTitle = getParameterByName('titulo');
+        const skipTime = parseInt(getParameterByName('tiempo'), 10); // Obtiene el tiempo de salto de la intro
+        // Configurar el reproductor
+        window.onload = function() {
+            if (videoLink) {
+                video.src = videoLink; // Establecer la fuente del video
+                if (videoTitle) {
+                    document.getElementById('title').innerText = videoTitle; // Establecer el título
+                }
+                video.play(); // Iniciar la reproducción
+            }
+        };
+        const video = document.getElementById('video');
+        const videoContainer = document.getElementById('videoContainer');
+        const playPauseButton = document.getElementById('playPause');
+        const muteButton = document.getElementById('mute');
+        const fullscreenButton = document.getElementById('fullscreen');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+        const rewindButton = document.getElementById('rewind');
+        const forwardButton = document.getElementById('forward');
+        const skipIntroButton = document.getElementById('skipIntro');
+        const spinner = document.getElementById('spinner');
+        const spinnerText = document.getElementById('spinnerText');
+        const slider = document.getElementById('slider');
+        let hideControlsTimeout;
+        const introDuration = 125; // Define la duración de la intro
+        let controlsVisible = true; // Cambiado a true para que los controles sean visibles
+
+        video.addEventListener('loadeddata', () => {
+            durationDisplay.textContent = formatTime(video.duration);
+            slider.max = video.duration;
+            slider.value = 0;
+            // Inicializa el slider al principio 
+        });
+
+        video.addEventListener('waiting', () => {
+            spinner.style.display = 'block';
+            spinnerText.style.display = 'block';
+        });
+
+        video.addEventListener('playing', () => {
+            spinner.style.display = 'none';
+            spinnerText.style.display = 'none';
+        });
+
+        video.addEventListener('timeupdate', () => {
+            currentTimeDisplay.textContent = formatTime(video.currentTime);
+            slider.value = (video.currentTime / video.duration) * 100; // Actualiza el valor del slider
+        });
+
+        video.addEventListener('ended', () => {
+            slider.value = 100; // Coloca el slider al final
+        });
+
+        playPauseButton.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                video.pause();
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+
+        muteButton.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteButton.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+        });
+
+        fullscreenButton.addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+            } else {
+                videoContainer.requestFullscreen();
+                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+            }
+        });
+
+        rewindButton.addEventListener('click', () => {
+            video.currentTime = Math.max(0, video.currentTime - 10);
+        });
+
+        forwardButton.addEventListener('click', () => {
+            video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        });
+
+        skipIntroButton.addEventListener('click', () => {
+            video.currentTime = skipTime; // Salta a la duración de la intro
+            skipIntroButton.style.display = 'none'; // Oculta el botón
+        });
+
+        videoContainer.addEventListener('click', (event) => {
+            if (![playPauseButton, muteButton, fullscreenButton, rewindButton, forwardButton, skipIntroButton].includes(event.target)) {
+                if (controlsVisible) {
+                    hideControls(true);
+                } else {
+                    showControls();
+                }
+            }
+        });
+
+        slider.addEventListener('input', () => {
+            const newTime = (slider.value / 100) * video.duration;
+            video.currentTime = newTime;
+        });
+
+        function showControls() {
+            controls.forEach(control => control.style.opacity = '1');
+            controlsVisible = true;
+            clearTimeout(hideControlsTimeout);
+        }
+
+        function hideControls(immediate = false) {
+            if (immediate) {
+                controls.forEach(control => control.style.opacity = '0');
+                controlsVisible = false;
+            } else {
+                hideControlsTimeout = setTimeout(() => {
+                    if (!video.paused) {
+                        controls.forEach(control => control.style.opacity = '0');
+                        controlsVisible = false;
+                    }
+                }, 3000);
+            }
+        }
+
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        video.addEventListener('play', hideControls);
+        video.addEventListener('pause', showControls);
+        showControls();
+    </script>
+</body>
+</html>
