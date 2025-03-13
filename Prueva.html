@@ -29,7 +29,7 @@
         }
         #controls, #title, #centerControls, #skipIntro {
             position: absolute;
-            opacity: 1; /* Cambiado a 1 para que sea visible */
+            opacity: 1; /* Todos los controles visibles */
             color: white;
             z-index: 10;
         }
@@ -71,7 +71,6 @@
             width: 98%;
             height: 20px;
             border-radius: 10px;
-            background: #808080;
             cursor: pointer;
             position: absolute;
             bottom: 100px;
@@ -114,7 +113,7 @@
 <body>
     <div id="videoContainer">
         <video id="video" src=""></video>
-        <div id="title">titulo de video</div>
+        <div id="title">Título de video</div>
         <div id="centerControls">
             <button id="rewind"><i class="fas fa-undo"></i></button>
             <button id="playPause"><i class="fas fa-play"></i></button>
@@ -137,30 +136,32 @@
     <script defer>
         // Función para obtener parámetros de la URL
         function getParameterByName(name) {
-            const url = window.location.href; // Obtiene la URL actual
-            name = name.replace(/[\[\]]/g, '\\$&'); // Escapa caracteres especiales
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
             const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                  results = regex.exec(url); // Busca el parámetro en la URL
-            if (!results) return null; // Si no se encuentra, retorna null
-            if (!results[2]) return ''; // Si no tiene valor, retorna una cadena vacía
-            return decodeURIComponent(results[2].replace(/\+/g, ' ')); // Decodifica el valor
+                  results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
+
         // Obtener parámetros de la URL
         const videoLink = getParameterByName('link');
         const videoTitle = getParameterByName('titulo');
-        const skipTime = parseInt(getParameterByName('tiempo'), 10); // Obtiene el tiempo de salto de la intro
+        const skipTime = parseInt(getParameterByName('tiempo'), 10);
+
         // Configurar el reproductor
         window.onload = function() {
             if (videoLink) {
-                video.src = videoLink; // Establecer la fuente del video
+                video.src = videoLink;
                 if (videoTitle) {
-                    document.getElementById('title').innerText = videoTitle; // Establecer el título
+                    document.getElementById('title').innerText = videoTitle;
                 }
-                video.play(); // Iniciar la reproducción
+                video.play();
             }
         };
+
         const video = document.getElementById('video');
-        const videoContainer = document.getElementById('videoContainer');
         const playPauseButton = document.getElementById('playPause');
         const muteButton = document.getElementById('mute');
         const fullscreenButton = document.getElementById('fullscreen');
@@ -172,15 +173,10 @@
         const spinner = document.getElementById('spinner');
         const spinnerText = document.getElementById('spinnerText');
         const slider = document.getElementById('slider');
-        let hideControlsTimeout;
-        const introDuration = 125; // Define la duración de la intro
-        let controlsVisible = true; // Cambiado a true para que los controles sean visibles
 
         video.addEventListener('loadeddata', () => {
             durationDisplay.textContent = formatTime(video.duration);
-            slider.max = video.duration;
-            slider.value = 0;
-            // Inicializa el slider al principio 
+            slider.max = video.duration; // Establece el máximo del slider
         });
 
         video.addEventListener('waiting', () => {
@@ -236,44 +232,14 @@
         });
 
         skipIntroButton.addEventListener('click', () => {
-            video.currentTime = skipTime; // Salta a la duración de la intro
-            skipIntroButton.style.display = 'none'; // Oculta el botón
-        });
-
-        videoContainer.addEventListener('click', (event) => {
-            if (![playPauseButton, muteButton, fullscreenButton, rewindButton, forwardButton, skipIntroButton].includes(event.target)) {
-                if (controlsVisible) {
-                    hideControls(true);
-                } else {
-                    showControls();
-                }
-            }
+            video.currentTime = skipTime; 
+            skipIntroButton.style.display = 'none'; 
         });
 
         slider.addEventListener('input', () => {
-            const newTime = (slider.value / 100) * video.duration;
-            video.currentTime = newTime;
+            const newTime = (slider.value / 100) * video.duration; // Calcula el nuevo tiempo
+            video.currentTime = newTime; // Establece el tiempo actual del video
         });
-
-        function showControls() {
-            controls.forEach(control => control.style.opacity = '1');
-            controlsVisible = true;
-            clearTimeout(hideControlsTimeout);
-        }
-
-        function hideControls(immediate = false) {
-            if (immediate) {
-                controls.forEach(control => control.style.opacity = '0');
-                controlsVisible = false;
-            } else {
-                hideControlsTimeout = setTimeout(() => {
-                    if (!video.paused) {
-                        controls.forEach(control => control.style.opacity = '0');
-                        controlsVisible = false;
-                    }
-                }, 3000);
-            }
-        }
 
         function formatTime(seconds) {
             const hrs = Math.floor(seconds / 3600);
@@ -281,10 +247,6 @@
             const secs = Math.floor(seconds % 60);
             return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
-
-        video.addEventListener('play', hideControls);
-        video.addEventListener('pause', showControls);
-        showControls();
     </script>
 </body>
 </html>
